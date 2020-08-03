@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Attack Calculator</title>
+<script type="text/javascript">
+var tbl;
+var tbdy;
+function tableCreate() {
+	var tbl=document.getElementById('bonusTable')
+	tbdy=document.createElement('tbody');
+	tbl.appendChild(tbdy);
+
+	//Make headings
+	makeBlankRow(['', 'Attack', 'Damage', 'Critical Damage', 'Enabled'], 'Header')
+	makeBlankRow(['Total', '', '', '', ''], 'totalRow');
+	
+	makeRow('base attack', 1, 0, 0);
+	makeRow('Power Attack', -1, 2, 4);
+	makeRow('Strength', 3, 3, 6);
+	makeRow('+1 Longsword', 1, "1d8+1", "2d8+2");
+	makeRow('Holy', 0, '2d6','2d6');
+	//makeRow('', 0, 0,0);
+
+	update();
+}
+function makeBlankRow(arr, id) {
+	var tr=document.createElement('tr');
+	tr.id=id;
+	var td;
+
+	var i;
+	for(i=0;i<arr.length;i++) {
+		td=document.createElement('td');
+		td.appendChild(document.createTextNode(arr[i]));
+		tr.appendChild(td);
+	}
+	tbdy.appendChild(tr);
+	return tr;
+}
+function makeRow(name, att, dmg, cdmg) {
+	if(typeof cdmg === 'undefined'){
+		cdmg = 2*dmg;
+	}
+	var tr=document.createElement('tr');
+	var td;
+
+	td=document.createElement('td');
+	td.appendChild(document.createTextNode(name));
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	td.appendChild(document.createTextNode(att));
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	td.appendChild(document.createTextNode(dmg));
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	td.appendChild(document.createTextNode(cdmg));
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	td.appendChild(document.createTextNode('ON'));
+	tr.appendChild(td);
+
+	tr.setAttribute("onclick", "javascript:toggle(this);");
+	tr.className="enabled datarow toEdit";
+	//tr.style.background='lightgreen';
+
+	totalRow = document.getElementById('totalRow');
+	tbdy.insertBefore(tr,totalRow);
+}
+function toggle(row) {
+	var list = row.classList;
+	if(list.contains("disabled")) {
+		list.remove("disabled")
+		list.add("enabled")
+		row.lastChild.firstChild.data='ON';
+	} else {
+		list.remove("enabled")
+		list.add("disabled")
+		row.lastChild.firstChild.data='OFF';
+	}
+	update();
+}
+function update() {
+	//update
+	var i;
+	var totAtt=0;
+	var totDmg='';
+	var totCDmg='';
+	for(row of document.getElementsByClassName("enabled")) {
+		totAtt += parseInt(row.childNodes[1].firstChild.data);
+		totDmg = addDamage(totDmg,row.childNodes[2].firstChild.data);
+		totCDmg = addDamage(totCDmg,row.childNodes[3].firstChild.data);
+	}
+	row = document.getElementById('totalRow');
+	row.childNodes[1].firstChild.data = '+'+totAtt;
+	row.childNodes[2].firstChild.data = totDmg;
+	row.childNodes[3].firstChild.data = totCDmg;
+}
+function addDamage(a,b) {
+	var i;
+
+	var sum = parseDamage(a);
+	var resB = parseDamage(b);
+	for(i=0;i<resB.length;i++) {
+		if(resB[i]) {
+			if(!( i in sum)) {
+				sum[i]=resB[i];
+			} else {
+				sum[i] += resB[i];
+			}
+		}
+	}
+
+	var result='';
+	for(i=sum.length;i>0;i--) {
+		if(sum[i] && sum[i] != 0) {
+			if(result != '') {
+				result += '+';
+			}
+			result += sum[i]+"d"+i;
+		}
+	}
+	if(sum[0]) {
+		if(result) {
+			result += '+';
+		}
+		result += sum[0];
+	}
+	if(result == '')
+		return "0"
+	return result;
+}
+function parseDamage(a) {
+	var sum=[];
+	if(a == '') {
+		a=0;
+	}
+	if(isFinite(a)) {
+		sum[0]=parseInt(a);
+	} else {
+		var res = a.split('+');
+		var n;
+		var x;
+		for(i=0;i<res.length;i++) {
+			if(isFinite(res[i])) {
+				n=0;
+				x=parseInt(res[i]);
+			} else {
+				sp = res[i].split('d');
+				n=parseInt(sp[1]);
+				x=parseInt(sp[0]);
+			}
+			if(!( n in sum)) {
+				sum[n]=0;
+			}
+			sum[n]+=x;
+		}
+	}
+	return sum;
+}
+function calcAvgDmg(arr) {
+	if(typeof arr == 'string') {
+		arr = parseDamage(arr);
+	}
+	var i;
+	var total=0;
+	if(arr[0]) {
+		total+=arr[0];
+	}
+	for(i=1;i<arr.length;i++) {
+		if(arr[i]) {
+			total+= arr[i]*(i+1)/2.0;
+		}
+	}
+	return total;
+}
+</script>
+<style>
+.enabled {
+	background: lightgreen;
+}
+.disabled {
+	background: red;
+}
+</style>
+</head>
+<body onload="tableCreate()">
+<center>
+<h1 class="toEdit">Attack Table: Example Character, level 1</h1>
+
+<table id="bonusTable"></table>
+</center>
+
+</body>
