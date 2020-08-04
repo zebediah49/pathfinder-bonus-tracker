@@ -6,6 +6,7 @@
 <script type="text/javascript">
 var tbl;
 var tbdy;
+var editmode=false;
 function tableCreate() {
 	var tbl=document.getElementById('bonusTable')
 	tbdy=document.createElement('tbody');
@@ -44,25 +45,36 @@ function makeRow(name, att, dmg, cdmg) {
 	}
 	var tr=document.createElement('tr');
 	var td;
+	var txt;
+
+	//tr.addEventListener("input", update,false);
+	//tr.setAttribute("contenteditable", true);
+	//tr.addEventListener("keydown",noEnter);
 
 	td=document.createElement('td');
-	td.appendChild(document.createTextNode(name));
+	txt=document.createTextNode(name);
+	td.appendChild(txt);
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	td.appendChild(document.createTextNode(att));
+	txt=document.createTextNode(att)
+	td.appendChild(txt);
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	td.appendChild(document.createTextNode(dmg));
+	txt=document.createTextNode(dmg);
+	td.appendChild(txt);
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	td.appendChild(document.createTextNode(cdmg));
+	txt=document.createTextNode(cdmg);
+	td.appendChild(txt);
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	td.appendChild(document.createTextNode('ON'));
+	txt=document.createTextNode('ON');
+	td.appendChild(txt);
+	td.setAttribute("contenteditable", true);
 	tr.appendChild(td);
 
 	tr.setAttribute("onclick", "javascript:toggle(this);");
@@ -97,7 +109,8 @@ function update() {
 		totCDmg = addDamage(totCDmg,row.childNodes[3].firstChild.data);
 	}
 	row = document.getElementById('totalRow');
-	row.childNodes[1].firstChild.data = '+'+totAtt;
+	if(totAtt >0) totAtt = "+"+totAtt;
+	row.childNodes[1].firstChild.data = totAtt;
 	row.childNodes[2].firstChild.data = totDmg;
 	row.childNodes[3].firstChild.data = totCDmg;
 }
@@ -179,6 +192,30 @@ function calcAvgDmg(arr) {
 	}
 	return total;
 }
+function noEnter(e) {
+	return e.which != 13
+}
+function toggleEditMode(e) {
+	if(e.checked) { 
+		for(row of document.getElementsByClassName("toEdit")) {
+			row.setAttribute("contenteditable", true);
+			row.addEventListener("input", update,false);
+			row.addEventListener("keydown",noEnter);
+		}
+		for(row of document.getElementsByClassName("datarow")) {
+			row.setAttribute("onclick", "");
+		}
+		document.getElementById("newRowButton").style.display="inline";
+	} else {
+		for(row of document.getElementsByClassName("toEdit")) {
+			row.setAttribute("contenteditable", false);
+		}
+		for(row of document.getElementsByClassName("datarow")) {
+			row.setAttribute("onclick", "javascript:toggle(this);");
+		}
+		document.getElementById("newRowButton").style.display="none";
+	}
+}
 </script>
 <style>
 .enabled {
@@ -191,6 +228,10 @@ function calcAvgDmg(arr) {
 </head>
 <body onload="tableCreate()">
 <center>
+	<div style="width: 10em; height: 2em" align=left>
+		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this)" /> Edit
+		<input type="button" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
+	</div>
 <h1 class="toEdit">Attack Table: Example Character, level 1</h1>
 
 <table id="bonusTable"></table>
