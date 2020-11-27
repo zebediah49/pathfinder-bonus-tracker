@@ -7,6 +7,60 @@
 var tbl;
 var tbdy;
 var editMode=false;
+var localStorage=window.localStorage;
+function loadTable(name="") {
+	if(localStorage.length == 0) {
+		tableCreate();
+		return;
+	}
+	var loadObj={time:0};
+	if(name=="") {
+		for(var i=0; i<localStorage.length; i++) {
+			var key = localStorage.key(i);
+			var value = localStorage[key];
+			var obj = JSON.parse(value);
+			if(obj.time > loadObj.time) {
+				loadObj=obj;
+			}
+		}
+	} else {
+		loadObj=JSON.parse(localStorage.getItem(name));
+	}
+	unserialize(loadObj);
+}
+function unserialize(obj) {
+	tbl=document.getElementById('bonusTable');
+	tbl.innerHTML=obj.html;
+	tbdy=tbl.tBodies[0];
+	header=document.getElementById('titleHeader');
+	header.innerHTML=obj.title;
+	if(editMode){ toggleEditMode(true); }
+}
+function saveTable(name="") {
+	if(name=="") {
+		name=document.getElementById('titleHeader').textContent;
+	}
+	localStorage.setItem(name, JSON.stringify(serialize()));
+}
+function serialize() {
+	var oldMode = editMode;
+	if(oldMode) { toggleEditMode(false); }
+	tbl=document.getElementById('bonusTable');
+	header=document.getElementById('titleHeader');
+	var loadObj={time:Date.now(), title:header.innerHTML, html:tbl.innerHTML};
+	if(oldMode) { toggleEditMode(true); }
+	return loadObj;
+}
+function copyPaste() {
+	var text = JSON.stringify(serialize());
+	var out=prompt("Copy/Paste",text);
+	if(out!= null) {
+		try {
+			obj=JSON.parse(out);
+			unserialize(obj);
+		} catch { ; }
+	}
+}
 function tableCreate() {
 	document.getElementById('editCheckbox').checked=false;
 	tbl=document.getElementById('bonusTable');
@@ -249,13 +303,16 @@ function removeRowEditable(row) {
 }
 </style>
 </head>
-<body onload="tableCreate()">
+<body onload="loadTable()">
 <center>
-	<div style="width: 10em; height: 2em" align=left>
+	<div style="width: 30em; height: 2em" align=left>
 		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this.checked)" /> Edit
 		<input type="button" class="editOnly" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
+		<input type="button" class="editOnly" onClick="javascript:saveTable()" value="Save" style="display:none" />
+		<input type="button" class="editOnly" onClick="javascript:loadTable()" value="Load" style="display:none" />
+		<input type="button" class="editOnly" onClick="javascript:copyPaste()" value="Import/Export" style="display:none" />
 	</div>
-<h1 class="toEdit">Attack Table: Example Character, level 1</h1>
+<h1 id="titleHeader" class="toEdit">Attack Table: Example Character, level 1</h1>
 
 <table id="bonusTable"></table>
 </center>
