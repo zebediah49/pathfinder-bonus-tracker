@@ -160,70 +160,96 @@ function update() {
 	row = document.getElementById('totalRow');
 	if(totAtt >0) totAtt = "+"+totAtt;
 	row.childNodes[1].firstChild.data = totAtt;
-	row.childNodes[2].firstChild.data = totDmg;
-	row.childNodes[3].firstChild.data = totCDmg;
+	row.childNodes[2].firstChild.data = renderDamage(totDmg);
+	row.childNodes[3].firstChild.data = renderDamage(totCDmg);
 }
 function addDamage(a,b) {
+	if(typeof a == 'string') {
+		a = parseDamage(a);
+	}
+	if(typeof b == 'string') {
+		b = parseDamage(b);
+	}
 	var i;
 
-	var sum = parseDamage(a);
-	var resB = parseDamage(b);
-	for(i=0;i<resB.length;i++) {
-		if(resB[i]) {
-			if(!( i in sum)) {
-				sum[i]=resB[i];
+	Object.keys(b).forEach(function(key) {
+			if(!(key in a)) {
+				a[key]  = b[key];
 			} else {
-				sum[i] += resB[i];
+				a[key] += b[key];
 			}
-		}
-	}
-
-	var result='';
-	for(i=sum.length;i>0;i--) {
-		if(sum[i] && sum[i] != 0) {
-			if(result != '') {
-				result += '+';
-			}
-			result += sum[i]+"d"+i;
-		}
-	}
-	if(sum[0]) {
-		if(result) {
-			result += '+';
-		}
-		result += sum[0];
-	}
-	if(result == '')
-		return "0"
-	return result;
+		});
+	return a;
 }
 function parseDamage(a) {
 	var sum=[];
+	splitRegex=/^([0-9]+)([^0-9].*)?$/
 	if(a == '') {
 		a=0;
 	}
 	if(isFinite(a)) {
-		sum[0]=parseInt(a);
+		sum['d0']=parseInt(a);
 	} else {
 		var res = a.split('+');
 		var n;
 		var x;
 		for(i=0;i<res.length;i++) {
-			if(isFinite(res[i])) {
-				n=0;
-				x=parseInt(res[i]);
+			sp=res[i].match(splitRegex);
+			if(!sp) {
+				continue;
+			}
+			x=parseInt(sp[1]);
+			if(sp[2]) {
+				key=sp[2];
 			} else {
-				sp = res[i].split('d');
-				n=parseInt(sp[1]);
-				x=parseInt(sp[0]);
+				key='d0';
 			}
-			if(!( n in sum)) {
-				sum[n]=0;
+			if(!( key in sum)) {
+				sum[key]=0;
 			}
-			sum[n]+=x;
+			sum[key]+=x;
 		}
 	}
 	return sum;
+}
+function renderDamage(arr) {
+	var interm=[];
+	Object.keys(arr).forEach(function(key) {
+		interm.push({"key":key, "val":arr[key]});
+		});
+
+	reg=/^((?:d[0-9]+)?)([^[0-9].*)?$/
+	nod=/^d*/
+	interm.sort(function(a,b) {
+		var m1=a.key.match(reg);
+		var m2=b.key.match(reg);
+		if(m1[2]==m2[2]) {
+			return m2[1].replace(nod,"")-m1[1].replace(nod,"");
+		}
+		if(m1[2]==undefined) {
+			return -1;
+		}
+		if(m2[2]==undefined) {
+			return 1;
+		}
+		return m1[2].localeCompare(m2[2]);
+	});
+
+	var result='';
+
+	interm.forEach(function(obj) {
+			if(result != '') {
+				result += '+';
+			}
+			if(obj.key == 'd0') {
+				result += obj.val
+			} else {
+				result += obj.val+""+obj.key;
+			}
+		});
+	if(result == '')
+		return "0"
+	return result;
 }
 function calcAvgDmg(arr) {
 	if(typeof arr == 'string') {
