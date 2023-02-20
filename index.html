@@ -7,38 +7,66 @@
 var tbl;
 var tbdy;
 var editMode=false;
+var localStorage=window.localStorage;
+function loadTable(name="") {
+	if(localStorage.length == 0) {
+		tableCreate();
+		return;
+	}
+	var loadObj={time:0};
+	if(name=="") {
+		for(var i=0; i<localStorage.length; i++) {
+			var key = localStorage.key(i);
+			var value = localStorage[key];
+			var obj = JSON.parse(value);
+			if(obj.time > loadObj.time) {
+				loadObj=obj;
+			}
+		}
+	} else {
+		loadObj=JSON.parse(localStorage.getItem(name));
+	}
+	unserialize(loadObj);
+}
+function unserialize(obj) {
+	tbl=document.getElementById('bonusTable');
+	tbl.innerHTML=obj.html;
+	tbdy=tbl.tBodies[0];
+	header=document.getElementById('titleHeader');
+	header.innerHTML=obj.title;
+	if(editMode){ toggleEditMode(true); }
+}
+function saveTable(name="") {
+	if(name=="") {
+		name=document.getElementById('titleHeader').textContent;
+	}
+	localStorage.setItem(name, JSON.stringify(serialize()));
+}
+function serialize() {
+	var oldMode = editMode;
+	if(oldMode) { toggleEditMode(false); }
+	tbl=document.getElementById('bonusTable');
+	header=document.getElementById('titleHeader');
+	var loadObj={time:Date.now(), title:header.innerHTML, html:tbl.innerHTML};
+	if(oldMode) { toggleEditMode(true); }
+	return loadObj;
+}
+function copyPaste() {
+	var text = JSON.stringify(serialize());
+	var out=prompt("Copy/Paste",text);
+	if(out!= null) {
+		try {
+			obj=JSON.parse(out);
+			unserialize(obj);
+		} catch { ; }
+	}
+}
 function tableCreate() {
 	document.getElementById('editCheckbox').checked=false;
 	tbl=document.getElementById('bonusTable');
 	tbdy=document.createElement('tbody');
 	tbl.appendChild(tbdy);
 
-	count=1;
-	//Make headings
-	makeBlankRow(['', 'Attack', 'Damage', 'Critical Damage', 'Enabled'], 'Header')
-	
-	makeRow('base attack', 8, 0);
-	makeRow('Strength', 0, 1);
-	makeRow('Dexterity', 4, 0);
-	makeRow('MW Longbow', 1, '1d8','3d8');
-	makeRow('+1 Longbow', 1, '1d8+1','3d8+3');
-	makeRow('Point Blank Shot', 1, 1);
-	makeRow('Deadly Aim', -3, 6);
-	makeRow('Rapid Shot', -2, 0);
-	makeRow('Arcane Strike', 0, 2);
-	makeRow('Bardic Performance', 2, 2);
-	makeRow('Haste', 1, 0);
-	makeRow('Smite Evil', 9, 8);
-	makeRow('Smite Evil [1st strike]', 0, 8);
-	makeRow('Bane', 2, '2d6+2','2d6+6');
-	//makeRow('', 0, 0,0);
-
-	makeBlankRow(['Total', '', '', '', ''], 'totalRow');
-
-	for(ti=5;ti<14;ti++) {
-		toggle(ti);
-	}
-=======
 	//Make headings
 	makeBlankRow(['', 'Attack', 'Damage', 'Critical Damage', 'Enabled'], 'Header')
 	makeBlankRow(['Total', '', '', '', ''], 'totalRow');
@@ -51,7 +79,6 @@ function tableCreate() {
 	//makeRow('', 0, 0,0);
 
 	update();
->>>>>>> refs/rewritten/master
 }
 function makeBlankRow(arr, id) {
 	var tr=document.createElement('tr');
@@ -65,68 +92,6 @@ function makeBlankRow(arr, id) {
 		tr.appendChild(td);
 	}
 	tbdy.appendChild(tr);
-<<<<<<< HEAD
-}
-function makeRow(name, att, dmg, cdmg) {
-	if(typeof cdmg === 'undefined'){
-		cdmg = 3*dmg;
-	}
-	var tr=document.createElement('tr');
-	var td;
-
-	td=document.createElement('td');
-	td.appendChild(document.createTextNode(name));
-	tr.appendChild(td);
-
-	td=document.createElement('td');
-	td.appendChild(document.createTextNode(att));
-	tr.appendChild(td);
-
-	td=document.createElement('td');
-	td.appendChild(document.createTextNode(dmg));
-	tr.appendChild(td);
-
-	td=document.createElement('td');
-	td.appendChild(document.createTextNode(cdmg));
-	tr.appendChild(td);
-
-	td=document.createElement('td');
-	td.appendChild(document.createTextNode('ON'));
-	tr.appendChild(td);
-
-	enabled[count]=true;
-	tr.setAttribute("onclick", "javascript:toggle("+count+");");
-	tr.style.background='lightgreen';
-
-	tbdy.appendChild(tr);
-	count++;
-}
-function toggle(num) {
-	var row = tbdy.childNodes[num];
-	enabled[num] = !enabled[num];
-	if(enabled[num]) {
-		row.style.background='LightGreen';
-		row.lastChild.firstChild.data='ON';
-	} else {
-		row.style.background='red';
-		row.lastChild.firstChild.data='OFF';
-	}
-	var i;
-	//update
-	var totAtt=0;
-	var totDmg='';
-	var totCDmg='';
-	for(i=1;i<count;i++) {
-		if(enabled[i]) {
-			row = tbdy.childNodes[i];
-			totAtt += parseInt(row.childNodes[1].firstChild.data);
-			totDmg = addDamage(totDmg,row.childNodes[2].firstChild.data);
-			totCDmg = addDamage(totCDmg,row.childNodes[3].firstChild.data);
-		}
-	}
-	row = document.getElementById('totalRow');
-	row.childNodes[1].firstChild.data = '+'+totAtt;
-=======
 	return tr;
 }
 function makeRow(name, att, dmg, cdmg) {
@@ -195,7 +160,6 @@ function update() {
 	row = document.getElementById('totalRow');
 	if(totAtt >0) totAtt = "+"+totAtt;
 	row.childNodes[1].firstChild.data = totAtt;
->>>>>>> refs/rewritten/master
 	row.childNodes[2].firstChild.data = totDmg;
 	row.childNodes[3].firstChild.data = totCDmg;
 }
@@ -229,11 +193,8 @@ function addDamage(a,b) {
 		}
 		result += sum[0];
 	}
-<<<<<<< HEAD
-=======
 	if(result == '')
 		return "0"
->>>>>>> refs/rewritten/master
 	return result;
 }
 function parseDamage(a) {
@@ -280,13 +241,6 @@ function calcAvgDmg(arr) {
 	}
 	return total;
 }
-<<<<<<< HEAD
-</script>
-</head>
-<body onload="tableCreate()">
-<center>
-<h1>Attack Table: Example level 8 paladin archer</h1>
-=======
 function noEnter(e) {
 	return e.which != 13
 }
@@ -349,14 +303,16 @@ function removeRowEditable(row) {
 }
 </style>
 </head>
-<body onload="tableCreate()">
+<body onload="loadTable()">
 <center>
-	<div style="width: 10em; height: 2em" align=left>
+	<div style="width: 30em; height: 2em" align=left>
 		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this.checked)" /> Edit
 		<input type="button" class="editOnly" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
+		<input type="button" class="editOnly" onClick="javascript:saveTable()" value="Save" style="display:none" />
+		<input type="button" class="editOnly" onClick="javascript:loadTable()" value="Load" style="display:none" />
+		<input type="button" class="editOnly" onClick="javascript:copyPaste()" value="Import/Export" style="display:none" />
 	</div>
-<h1 class="toEdit">Attack Table: Example Character, level 1</h1>
->>>>>>> refs/rewritten/master
+<h1 id="titleHeader" class="toEdit">Attack Table: Example Character, level 1</h1>
 
 <table id="bonusTable"></table>
 </center>
