@@ -301,7 +301,9 @@ function toggleEditMode(mode) {
 		for(row of document.getElementsByClassName("datarow")) {
 			setRowEditable(row);
 		}
-		document.getElementById("newRowButton").style.display="inline";
+		for(row of document.getElementsByClassName("editOnly")) {
+			row.style.display="inline";
+		}
 	} else {
 		editMode=false;
 		for(row of document.getElementsByClassName("toEdit")) {
@@ -312,7 +314,9 @@ function toggleEditMode(mode) {
 		for(row of document.getElementsByClassName("datarow")) {
 			removeRowEditable(row);
 		}
-		document.getElementById("newRowButton").style.display="none";
+		for(row of document.getElementsByClassName("editOnly")) {
+			row.style.display="none";
+		}
 	}
 }
 function setRowEditable(row) {
@@ -349,7 +353,7 @@ function removeRowEditable(row) {
 <center>
 	<div style="width: 10em; height: 2em" align=left>
 		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this.checked)" /> Edit
-		<input type="button" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
+		<input type="button" class="editOnly" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
 	</div>
 <h1 class="toEdit">Attack Table: Example Character, level 1</h1>
 >>>>>>> refs/rewritten/master
