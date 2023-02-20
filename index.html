@@ -290,8 +290,8 @@ function calcAvgDmg(arr) {
 function noEnter(e) {
 	return e.which != 13
 }
-function toggleEditMode(e) {
-	if(e.checked) { 
+function toggleEditMode(mode) {
+	if(mode) {
 		editMode=true;
 		for(row of document.getElementsByClassName("toEdit")) {
 			row.setAttribute("contenteditable", true);
@@ -348,7 +348,7 @@ function removeRowEditable(row) {
 <body onload="tableCreate()">
 <center>
 	<div style="width: 10em; height: 2em" align=left>
-		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this)" /> Edit
+		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this.checked)" /> Edit
 		<input type="button" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
 	</div>
 <h1 class="toEdit">Attack Table: Example Character, level 1</h1>
