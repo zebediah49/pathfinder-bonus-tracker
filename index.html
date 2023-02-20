@@ -1,11 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Attack Calculator: Example level 8 paladin archer</title>
+<meta charset="utf-8"/>
+<title>Attack Calculator</title>
 <script type="text/javascript">
 var tbl;
 var tbdy;
-var count;
-var enabled= [];
+var editmode=false;
 function tableCreate() {
 	var tbl=document.getElementById('bonusTable')
 	tbdy=document.createElement('tbody');
@@ -36,6 +37,20 @@ function tableCreate() {
 	for(ti=5;ti<14;ti++) {
 		toggle(ti);
 	}
+=======
+	//Make headings
+	makeBlankRow(['', 'Attack', 'Damage', 'Critical Damage', 'Enabled'], 'Header')
+	makeBlankRow(['Total', '', '', '', ''], 'totalRow');
+	
+	makeRow('base attack', 1, 0, 0);
+	makeRow('Power Attack', -1, 2, 4);
+	makeRow('Strength', 3, 3, 6);
+	makeRow('+1 Longsword', 1, "1d8+1", "2d8+2");
+	makeRow('Holy', 0, '2d6','2d6');
+	//makeRow('', 0, 0,0);
+
+	update();
+>>>>>>> refs/rewritten/master
 }
 function makeBlankRow(arr, id) {
 	var tr=document.createElement('tr');
@@ -49,6 +64,7 @@ function makeBlankRow(arr, id) {
 		tr.appendChild(td);
 	}
 	tbdy.appendChild(tr);
+<<<<<<< HEAD
 }
 function makeRow(name, att, dmg, cdmg) {
 	if(typeof cdmg === 'undefined'){
@@ -109,6 +125,82 @@ function toggle(num) {
 	}
 	row = document.getElementById('totalRow');
 	row.childNodes[1].firstChild.data = '+'+totAtt;
+=======
+	return tr;
+}
+function makeRow(name, att, dmg, cdmg) {
+	if(typeof cdmg === 'undefined'){
+		cdmg = 2*dmg;
+	}
+	var tr=document.createElement('tr');
+	var td;
+	var txt;
+
+	//tr.addEventListener("input", update,false);
+	//tr.setAttribute("contenteditable", true);
+	//tr.addEventListener("keydown",noEnter);
+
+	td=document.createElement('td');
+	txt=document.createTextNode(name);
+	td.appendChild(txt);
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	txt=document.createTextNode(att)
+	td.appendChild(txt);
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	txt=document.createTextNode(dmg);
+	td.appendChild(txt);
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	txt=document.createTextNode(cdmg);
+	td.appendChild(txt);
+	tr.appendChild(td);
+
+	td=document.createElement('td');
+	txt=document.createTextNode('ON');
+	td.appendChild(txt);
+	td.setAttribute("contenteditable", true);
+	tr.appendChild(td);
+
+	tr.setAttribute("onclick", "javascript:toggle(this);");
+	tr.className="enabled datarow toEdit";
+	//tr.style.background='lightgreen';
+
+	totalRow = document.getElementById('totalRow');
+	tbdy.insertBefore(tr,totalRow);
+}
+function toggle(row) {
+	var list = row.classList;
+	if(list.contains("disabled")) {
+		list.remove("disabled")
+		list.add("enabled")
+		row.lastChild.firstChild.data='ON';
+	} else {
+		list.remove("enabled")
+		list.add("disabled")
+		row.lastChild.firstChild.data='OFF';
+	}
+	update();
+}
+function update() {
+	//update
+	var i;
+	var totAtt=0;
+	var totDmg='';
+	var totCDmg='';
+	for(row of document.getElementsByClassName("enabled")) {
+		totAtt += parseInt(row.childNodes[1].firstChild.data);
+		totDmg = addDamage(totDmg,row.childNodes[2].firstChild.data);
+		totCDmg = addDamage(totCDmg,row.childNodes[3].firstChild.data);
+	}
+	row = document.getElementById('totalRow');
+	if(totAtt >0) totAtt = "+"+totAtt;
+	row.childNodes[1].firstChild.data = totAtt;
+>>>>>>> refs/rewritten/master
 	row.childNodes[2].firstChild.data = totDmg;
 	row.childNodes[3].firstChild.data = totCDmg;
 }
@@ -142,6 +234,11 @@ function addDamage(a,b) {
 		}
 		result += sum[0];
 	}
+<<<<<<< HEAD
+=======
+	if(result == '')
+		return "0"
+>>>>>>> refs/rewritten/master
 	return result;
 }
 function parseDamage(a) {
@@ -188,11 +285,55 @@ function calcAvgDmg(arr) {
 	}
 	return total;
 }
+<<<<<<< HEAD
 </script>
 </head>
 <body onload="tableCreate()">
 <center>
 <h1>Attack Table: Example level 8 paladin archer</h1>
+=======
+function noEnter(e) {
+	return e.which != 13
+}
+function toggleEditMode(e) {
+	if(e.checked) { 
+		for(row of document.getElementsByClassName("toEdit")) {
+			row.setAttribute("contenteditable", true);
+			row.addEventListener("input", update,false);
+			row.addEventListener("keydown",noEnter);
+		}
+		for(row of document.getElementsByClassName("datarow")) {
+			row.setAttribute("onclick", "");
+		}
+		document.getElementById("newRowButton").style.display="inline";
+	} else {
+		for(row of document.getElementsByClassName("toEdit")) {
+			row.setAttribute("contenteditable", false);
+		}
+		for(row of document.getElementsByClassName("datarow")) {
+			row.setAttribute("onclick", "javascript:toggle(this);");
+		}
+		document.getElementById("newRowButton").style.display="none";
+	}
+}
+</script>
+<style>
+.enabled {
+	background: lightgreen;
+}
+.disabled {
+	background: red;
+}
+</style>
+</head>
+<body onload="tableCreate()">
+<center>
+	<div style="width: 10em; height: 2em" align=left>
+		<input type="checkbox" id="editCheckbox" onClick="javascript:toggleEditMode(this)" /> Edit
+		<input type="button" id="newRowButton" onClick="javascript:makeRow('New Row', 0,0,0)" value="New Row" style="display:none" />
+	</div>
+<h1 class="toEdit">Attack Table: Example Character, level 1</h1>
+>>>>>>> refs/rewritten/master
 
 <table id="bonusTable"></table>
 </center>
