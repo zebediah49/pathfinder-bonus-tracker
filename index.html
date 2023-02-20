@@ -6,9 +6,10 @@
 <script type="text/javascript">
 var tbl;
 var tbdy;
-var editmode=false;
+var editMode=false;
 function tableCreate() {
-	var tbl=document.getElementById('bonusTable')
+	document.getElementById('editCheckbox').checked=false;
+	tbl=document.getElementById('bonusTable')
 	tbdy=document.createElement('tbody');
 	tbl.appendChild(tbdy);
 
@@ -134,44 +135,38 @@ function makeRow(name, att, dmg, cdmg) {
 	}
 	var tr=document.createElement('tr');
 	var td;
-	var txt;
-
-	//tr.addEventListener("input", update,false);
-	//tr.setAttribute("contenteditable", true);
-	//tr.addEventListener("keydown",noEnter);
 
 	td=document.createElement('td');
-	txt=document.createTextNode(name);
-	td.appendChild(txt);
+	td.appendChild(document.createTextNode(name));
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	txt=document.createTextNode(att)
-	td.appendChild(txt);
+	td.appendChild(document.createTextNode(att));
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	txt=document.createTextNode(dmg);
-	td.appendChild(txt);
+	td.appendChild(document.createTextNode(dmg));
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	txt=document.createTextNode(cdmg);
-	td.appendChild(txt);
+	td.appendChild(document.createTextNode(cdmg));
 	tr.appendChild(td);
 
 	td=document.createElement('td');
-	txt=document.createTextNode('ON');
-	td.appendChild(txt);
-	td.setAttribute("contenteditable", true);
+	td.appendChild(document.createTextNode('ON'));
 	tr.appendChild(td);
 
+	tr.className="enabled datarow";
 	tr.setAttribute("onclick", "javascript:toggle(this);");
-	tr.className="enabled datarow toEdit";
-	//tr.style.background='lightgreen';
+	
+	if(editMode)
+		setRowEditable(tr);
 
 	totalRow = document.getElementById('totalRow');
 	tbdy.insertBefore(tr,totalRow);
+}
+function deleteRow(e) {
+	e.parentNode.remove();
 }
 function toggle(row) {
 	var list = row.classList;
@@ -297,24 +292,48 @@ function noEnter(e) {
 }
 function toggleEditMode(e) {
 	if(e.checked) { 
+		editMode=true;
 		for(row of document.getElementsByClassName("toEdit")) {
 			row.setAttribute("contenteditable", true);
 			row.addEventListener("input", update,false);
 			row.addEventListener("keydown",noEnter);
 		}
 		for(row of document.getElementsByClassName("datarow")) {
-			row.setAttribute("onclick", "");
+			setRowEditable(row);
 		}
 		document.getElementById("newRowButton").style.display="inline";
 	} else {
+		editMode=false;
 		for(row of document.getElementsByClassName("toEdit")) {
-			row.setAttribute("contenteditable", false);
+			row.removeAttribute("contenteditable");
+			row.removeEventListener("input", update);
+			row.removeEventListener("keydown", noEnter);
 		}
 		for(row of document.getElementsByClassName("datarow")) {
-			row.setAttribute("onclick", "javascript:toggle(this);");
+			removeRowEditable(row);
 		}
 		document.getElementById("newRowButton").style.display="none";
 	}
+}
+function setRowEditable(row) {
+	row.setAttribute("contenteditable", true);
+	row.addEventListener("input", update,false);
+	row.addEventListener("keydown",noEnter);
+	row.setAttribute("onclick", "");
+
+	td=document.createElement('td');
+	//td.appendChild(document.createTextNode('\u1F5D1'));
+	td.appendChild(document.createTextNode('\u2718'));
+	td.setAttribute("onclick", "javascript:deleteRow(this)", false);
+	row.appendChild(td);
+}
+function removeRowEditable(row) {
+	row.removeAttribute("contenteditable");
+	row.removeEventListener("input", update);
+	row.removeEventListener("keydown", noEnter);
+	row.setAttribute("onclick", "javascript:toggle(this);");
+
+	row.lastChild.remove();
 }
 </script>
 <style>
